@@ -1,27 +1,70 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherDataParser {
-    public List<WeatherData> parseWeatherData(String jsonData) {
-        List<WeatherData> weatherDataList = new ArrayList<>();
-
+    public List<WeatherData> parseWeather(String jsonData) {
+        List<WeatherData> result = new ArrayList<>();
         JSONArray rootArray = new JSONArray(jsonData);
-        JSONObject timeStringObject = rootArray.getJSONObject(0)
-                .getJSONArray("timeSeries").getJSONObject(0);
+        JSONObject firstItem = rootArray.getJSONObject(0);
 
-        JSONArray timeDefinesArray = timeStringObject.getJSONArray("timeDefines");
-        JSONArray weathersArray = timeStringObject.getJSONArray("areas")
-                .getJSONObject(0).getJSONArray("weathers");
+        JSONArray timeDefines = firstItem
+                .getJSONArray("timeSeries")
+                .getJSONObject(0)
+                .getJSONArray("timeDefines");
 
-        for (int i = 0; i < timeDefinesArray.length(); i++) {
-            String time = timeDefinesArray.getString(i);
-            String weather = weathersArray.getString(i);
-            weatherDataList.add(new WeatherData(time, weather));
+        JSONArray areas = firstItem
+                .getJSONArray("timeSeries")
+                .getJSONObject(0)
+                .getJSONArray("areas");
+
+        for (int i = 0; i < areas.length(); i++) {
+            JSONObject areaObj = areas.getJSONObject(i);
+            String areaName = areaObj.getJSONObject("area").getString("name");
+            JSONArray weathers = areaObj.getJSONArray("weathers");
+
+            for (int j = 0; j < weathers.length(); j++) {
+                String time = timeDefines.getString(j);
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(time);
+                String formattedTime = zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"));
+                String weather = weathers.getString(j);
+                result.add(new WeatherData(areaName, formattedTime, weather));
+            }
         }
+        return result;
+    }
+    
+    public List<WeatherData> parsetemp(String jsonData) {
+        List<WeatherData> result = new ArrayList<>();
+        JSONArray rootArray = new JSONArray(jsonData);
+        JSONObject firstItem = rootArray.getJSONObject(0);
 
-        return weatherDataList;
+        JSONArray timeDefines = firstItem
+                .getJSONArray("timeSeries")
+                .getJSONObject(0)
+                .getJSONArray("timeDefines");
+
+        JSONArray areas = firstItem
+                .getJSONArray("timeSeries")
+                .getJSONObject(0)
+                .getJSONArray("areas");
+
+        for (int i = 0; i < areas.length(); i++) {
+            JSONObject areaObj = areas.getJSONObject(i);
+            String areaName = areaObj.getJSONObject("area").getString("name");
+            JSONArray weathers = areaObj.getJSONArray("weathers");
+
+            for (int j = 0; j < weathers.length(); j++) {
+                String time = timeDefines.getString(j);
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(time);
+                String formattedTime = zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"));
+                String weather = weathers.getString(j);
+                result.add(new WeatherData(areaName, formattedTime, weather));
+            }
+        }
+        return result;
     }
 }

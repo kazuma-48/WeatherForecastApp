@@ -6,10 +6,9 @@ import java.net.URI;
 import java.net.URL;
 
 public class WeatherApiClient {
-    private static final String API_URL = "https://www.jma.go.jp/bosai/forecast/data/forecast/270000.json";
-
-    public String fetchWeatherData() throws Exception {
-        URI uri = new URI(API_URL);
+    public String fetchWeatherData(String areaCode)throws Exception{
+        String apiUrl ="https://www.jma.go.jp/bosai/forecast/data/forecast/240000.json";
+        URI uri = new URI(apiUrl);
         URL url = uri.toURL();
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -17,8 +16,7 @@ public class WeatherApiClient {
         int responseCode = connection.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
             StringBuilder responseBody = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
+            try(BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),"UTF-8"))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     responseBody.append(line);
@@ -26,7 +24,7 @@ public class WeatherApiClient {
             }
             return responseBody.toString();
         } else {
-            throw new IOException("Failed to fetch data: HTTP response code " + responseCode);
+            throw new IOException("HTTP エラーコード: " + responseCode);
         }
     }
 }
