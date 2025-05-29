@@ -1,6 +1,7 @@
 import java.util.Random;
 
-public class WeatherUranai {
+public class WeatherMethodlist {
+    //星座占い
     public static void printWeatherUranai() {
         String[] constellation = {
                 "おひつじ座", "おうし座", "ふたご座", "かに座", "しし座", "おとめ座",
@@ -48,5 +49,24 @@ public class WeatherUranai {
             list[i][1] = numitem;
             list[i][2] = numcolor;
         }
+    }
+    //天気情報
+    public static String printWeather(int code) {
+        return switch (code) {
+            case 0 -> "快晴";
+            case 1, 2, 3 -> "曇り";
+            case 45, 48 -> "霧";
+            case 51, 53, 55 -> "霧雨";
+            case 56, 57 -> "凍る霧雨";
+            case 61, 63, 65 -> "雨";
+            case 66, 67 -> "凍る雨";
+            case 71, 73, 75 -> "雪";
+            case 77 -> "雪の粒";
+            case 80, 81, 82 -> "にわか雨";
+            case 85, 86 -> "にわか雪";
+            case 95 -> "雷雨";
+            case 96, 99 -> "雷雨（ひょう）";
+            default -> "不明";
+        };
     }
 }

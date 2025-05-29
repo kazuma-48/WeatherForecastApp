@@ -1,16 +1,23 @@
 public class WeatherData {
-    private final String areaName;
-    private final String time;
-    private final String weather;
+    private final String name;
+    private final double latitude;
+    private final double longitude;
 
-    public WeatherData(String areaName, String time, String weather) {
-        this.areaName = areaName;
-        this.time = time;
-        this.weather = weather;
+    public WeatherData(String name, double latitude, double longitude) {
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    @Override
-    public String toString() {
-        return "エリア: " + areaName + " [" + time + "] " + weather;
+    public String getName() {
+        return name;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
     }
 }
