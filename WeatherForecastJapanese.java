@@ -49,21 +49,34 @@ public class WeatherForecastJapanese {
         // ホーム画面を表示するメソッド
         Runnable showHome = () -> {
             panel.removeAll();
-            JLabel homeLabel = new JLabel("日本の天気予報へようこそ！");
-            homeLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 22));
-            homeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            panel.add(Box.createVerticalStrut(40));
-            panel.add(homeLabel);
-            JLabel subLabel = new JLabel("上のボタンから県を選択してください");
-            subLabel.setFont(new Font("Yu Gothic UI", Font.PLAIN, 16));
-            subLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            // 画像の表示（左上に表示）
+            JPanel imgPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            imgPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            try {
+                ImageIcon icon = new ImageIcon("image/map.png");
+                Image img = icon.getImage();
+                int width = 600; // 左上なので小さめに
+                int height = img.getHeight(null) * width / img.getWidth(null);
+                Image scaledImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                JLabel imgLabel = new JLabel(new ImageIcon(scaledImg));
+                imgPanel.add(imgLabel);
+            } catch (Exception ex) {
+                // 画像が読み込めない場合は何もしない
+            }
+            panel.add(imgPanel);
             panel.add(Box.createVerticalStrut(10));
-            panel.add(subLabel);
+            // 文字を左寄せに
+            JLabel homeLabel = new JLabel("今日のトレーニングコンディションは晴れのちパワーアップ！");
+            homeLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 40));
+            homeLabel.setHorizontalAlignment(SwingConstants.LEFT);
+            homeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(homeLabel);
             panel.add(Box.createVerticalStrut(20));
             String uranaiResult = WeatherMethodlist.printUranai();
             JLabel uranaiLabel = new JLabel("<html>今日の占い<br>" + uranaiResult.replace("\n", "<br>") + "</html>");
             uranaiLabel.setFont(new Font("Yu Gothic UI", Font.PLAIN, 16));
-            uranaiLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            uranaiLabel.setHorizontalAlignment(SwingConstants.LEFT);
+            uranaiLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(uranaiLabel);
             panel.add(Box.createVerticalStrut(20));
             panel.revalidate();
@@ -88,7 +101,8 @@ public class WeatherForecastJapanese {
                     panel.removeAll();
                     // 県名タイトル
                     JLabel cityLabel = new JLabel("==== " + data.getName() + "の天気予報 ====");
-                    cityLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 18));
+                    cityLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 26)); // 文字を大きく
+                    cityLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     panel.add(cityLabel);
                     // 天気データ取得
                     JSONObject json = client.getWeatherForecast(data, 3);
@@ -118,6 +132,7 @@ public class WeatherForecastJapanese {
                         // 日付・天気・気温・降水量のメッセージ
                         JLabel dateLabel = new JLabel(
                                 String.format("%s: %s, 最低 %.1f°C, 最高 %.1f°C%s", date, weather, min, max, precipStr));
+                        dateLabel.setFont(new Font("Yu Gothic UI", Font.PLAIN, 20)); // 文字を大きく
                         row.add(dateLabel);
                         panel.add(row);
                     }
