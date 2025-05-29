@@ -1,8 +1,9 @@
 import java.util.Random;
+import java.time.LocalDate;
 
 public class WeatherMethodlist {
-    //星座占い
-    public static void printWeatherUranai() {
+    // 星座占い（staticメソッド＆String型で結果を返す）
+    public static String printUranai() {
         String[] constellation = {
                 "おひつじ座", "おうし座", "ふたご座", "かに座", "しし座", "おとめ座",
                 "てんびん座", "さそり座", "いて座", "やぎ座", "みずがめ座", "うお座"
@@ -20,37 +21,40 @@ public class WeatherMethodlist {
                 "赤", "青", "緑", "黄", "紫", "オレンジ", "ピンク", "黒", "白", "金",
                 "銀", "水色", "茶色", "ベージュ", "グレー", "黄緑", "シアン", "マゼンタ", "パステル", "クリーム"
         };
-        System.out.println("今日の運勢");
-        int list[][] = new int[3][3];
+        StringBuilder sb = new StringBuilder();
+        int[][] list = new int[3][3];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 list[i][j] = -1;
             }
         }
+        // 日付情報からシード値を生成（import java.time.LocalDate; を利用）
+        LocalDate today = LocalDate.now();
+        int seed = today.getYear() * 10000 + today.getMonthValue() * 100 + today.getDayOfMonth();
         for (int i = 0; i < 3; i++) {
-            Random rnd = new Random();
-            int numcon = rnd.nextInt(12);
-            int numitem = rnd.nextInt(50);
-            int numcolor = rnd.nextInt(20);
+            int numcon = new Random(seed).nextInt(12);
+            int numitem = new Random(seed).nextInt(50);
+            int numcolor = new Random(seed).nextInt(20);
             while (list[0][0] == numcon || list[1][0] == numcon) {
-                numcon = ((numcon + numcon) / 4) % 12;
+                numcon = (numcon + 1) % 12;
             }
             while (list[0][1] == numitem || list[1][1] == numitem) {
-                numitem = ((numitem + numitem) / 4) % 50;
+                numitem = (numitem + 1) % 50;
             }
             while (list[0][2] == numcolor || list[1][2] == numcolor) {
-                numcolor = ((numcolor + numcolor) / 4) % 20;
+                numcolor = (numcolor + 1) % 20;
             }
-            System.out.println("第" + (i + 1) + "位は" + "「" + constellation[numcon] + "」\n"
-                    + "　　ラッキーアイテムは" + "「" + luckyitem[numitem] + "」\n"
-                    + "　　ラッキーカラーは" + "「" + luckycolor[numcolor] + "」");
-            System.out.println();
+            sb.append("第" + (i + 1) + "位は" + "「" + constellation[numcon] + "」\n");
+            sb.append("　　ラッキーアイテムは" + "「" + luckyitem[numitem] + "」\n");
+            sb.append("　　ラッキーカラーは" + "「" + luckycolor[numcolor] + "」\n");
             list[i][0] = numcon;
             list[i][1] = numitem;
             list[i][2] = numcolor;
         }
+        return sb.toString();
     }
-    //天気情報
+
+    // 天気情報
     public static String printWeather(int code) {
         return switch (code) {
             case 0 -> "快晴";
