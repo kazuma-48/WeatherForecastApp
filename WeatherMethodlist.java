@@ -29,7 +29,7 @@ public class WeatherMethodlist {
         int seed = today.getYear() * 10000 + today.getMonthValue() * 100 + today.getDayOfMonth();
         for (int i = 0; i < 3; i++) {
             int numcon = new Random(seed).nextInt(12);
-            int numitem = new Random(seed).nextInt(35);
+            int numitem = new Random(seed).nextInt(25);
             int numcolor = new Random(seed).nextInt(20);
             while (list[0][0] == numcon || list[1][0] == numcon) {
                 numcon = (numcon + 1) % 12;

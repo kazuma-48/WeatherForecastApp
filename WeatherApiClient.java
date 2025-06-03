@@ -10,7 +10,7 @@ public class WeatherApiClient {
 
     public JSONObject getWeatherForecast(WeatherData city, int forecastDays) throws IOException, InterruptedException {
         String url = String.format(
-                "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Asia%%2FTokyo&forecast_days=%d",
+                "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,uv_index_max&timezone=Asia%%2FTokyo&forecast_days=%d",
                 city.getLatitude(), city.getLongitude(), forecastDays);
 
         HttpRequest request = HttpRequest.newBuilder()
