@@ -1,14 +1,7 @@
 import java.util.List;
-import org.json.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
 import javax.swing.*;
 import java.awt.*;
-import java.time.LocalDate;
 
 public class WeatherForecastJapanese {
     // 47都道府県のリスト
@@ -112,8 +105,8 @@ public class WeatherForecastJapanese {
                     WeatherData found = PREFS.stream().filter(d -> d.getName().equals(selected)).findFirst()
                             .orElse(null);
                     if (found != null) {
-                        String imagePath = getPrefImagePath(found.getName());
-                        showWeather(panel, found, imagePath);
+                        String imagePath = WeatherMethodlist.getPrefImagePathByData(found);
+                        WeatherData.weatherUtil.showWeather(panel, found, imagePath);
                     }
                 }
             });
@@ -130,13 +123,13 @@ public class WeatherForecastJapanese {
             String[] lines = uranaiResult.split("\n");
             for (int i = 0; i < lines.length; i++) {
                 String line = lines[i];
-                if (line.startsWith("第") && line.contains("は「") && line.contains("座」")) {
-                    String seiza = line.substring(line.indexOf("「") + 1, line.indexOf("座」"));
-                    String imageFile = getSeizaImageFile(seiza);
-                    JPanel row = createUranaiRow(line, imageFile);
+                if (line.startsWith("第") && line.contains("は「") && line.contains("座")) {
+                    String seiza = line.substring(line.indexOf("「") + 1, line.indexOf("座"));
+                    String imageFile = WeatherMethodlist.getSeizaImageFile(seiza);
+                    JPanel row = WeatherData.uranaiUtil.createUranaiRow(line, imageFile);
                     uranaiPanel.add(row);
                     if (i + 2 < lines.length) {
-                        uranaiPanel.add(createUranaiSubRow(lines[i + 1], lines[i + 2]));
+                        uranaiPanel.add(WeatherData.uranaiUtil.createUranaiSubRow(lines[i + 1], lines[i + 2]));
                         i += 2;
                     }
                 } else {
@@ -154,7 +147,7 @@ public class WeatherForecastJapanese {
             imgTitle.setForeground(new Color(0, 120, 220));
             imgTitle.setHorizontalAlignment(SwingConstants.CENTER);
             rightPanel.add(imgTitle, BorderLayout.NORTH);
-            addImage(rightPanel, "image/cd1f65b4-88c3-4750-b086-913bc4a34136.jpg", 340);
+            WeatherData.imageUtil.addImage(rightPanel, "image/cd1f65b4-88c3-4750-b086-913bc4a34136.jpg", 340);
             homeContentPanel.add(leftPanel, BorderLayout.CENTER);
             homeContentPanel.add(rightPanel, BorderLayout.EAST);
             panel.add(homeContentPanel);
@@ -170,284 +163,32 @@ public class WeatherForecastJapanese {
 
         // --- 県ごと画像ボタン削除済み ---
         frame.setVisible(true);
+
+        // --- ユーティリティクラスをstaticにしてmain内で直接newせず使えるようにする ---
     }
 
-    // --- 県ごとの天気表示 ---
-    private static void showWeather(JPanel panel, WeatherData data, String imagePath) {
-        panel.removeAll();
-        // 都道府県画像を表示
-        addImage(panel, getPrefImagePathByData(data), 300);
-        addLabel(panel, "==== " + data.getName() + "の天気予報 ====", 26, true);
-        try {
-            WeatherApiClient client = new WeatherApiClient();
-            JSONObject json = client.getWeatherForecast(data, 3);
-            JSONObject dailyObj = json.getJSONObject("daily");
-            JSONArray dates = dailyObj.getJSONArray("time");
-            JSONArray weatherCodes = dailyObj.getJSONArray("weathercode");
-            JSONArray tempsMax = dailyObj.getJSONArray("temperature_2m_max");
-            JSONArray tempsMin = dailyObj.getJSONArray("temperature_2m_min");
-            JSONArray precipitation = dailyObj.optJSONArray("precipitation_sum");
-            JSONArray uvIndex = dailyObj.optJSONArray("uv_index_max");
-            for (int d = 0; d < dates.length(); d++) {
-                String date = LocalDate.parse(dates.getString(d)).toString();
-                int code = weatherCodes.getInt(d);
-                double max = tempsMax.getDouble(d), min = tempsMin.getDouble(d);
-                String weather = WeatherMethodlist.printWeather(code);
-                String precipStr = (precipitation != null && d < precipitation.length())
-                        ? String.format(", 降水量 %.1fmm", precipitation.getDouble(d))
-                        : "";
-                String uvStr = (uvIndex != null && d < uvIndex.length())
-                        ? String.format(", 紫外線指数 %.1f", uvIndex.getDouble(d))
-                        : "";
-                // 天気画像（天気名で分岐）
-                String weatherImagePath = getWeatherImagePath(weather);
-                if (weatherImagePath != null) {
-                    addImage(panel, weatherImagePath, 80);
-                }
-                addLabel(panel,
-                        String.format("%s: %s, 最低 %.1f°C, 最高 %.1f°C%s%s", date, weather, min, max, precipStr, uvStr),
-                        20, false);
-            }
-        } catch (Exception ex) {
-            addLabel(panel, "天気情報の取得に失敗しました: " + ex.getMessage(), 16, false, Color.RED);
-        }
+    // --- ラベル追加用メソッド ---
+    static void addLabel(JPanel panel, String text, int fontSize, boolean bold) {
+        addLabel(panel, text, fontSize, bold, new java.awt.Color(30, 30, 30), false);
     }
 
-    // --- 天気名から画像ファイルパスを取得するメソッド ---
-    private static String getWeatherImagePath(String weather) {
-        switch (weather) {
-            case "快晴":
-                return "image/sunny.png";
-            case "曇り":
-                return "image/cloudy.png";
-            case "雨":
-                return "image/rain.png";
-            case "雪":
-                return "image/snow.png";
-            case "雷雨":
-                return "image/thunder.png";
-            // 必要に応じて他の天気画像も追加
-            default:
-                return null;
-        }
-    }
-
-    // --- 汎用ラベル追加メソッド ---
-    private static void addLabel(JPanel panel, String text, int fontSize, boolean bold) {
-        addLabel(panel, text, fontSize, bold, new Color(30, 30, 30), false);
-    }
-
-    private static void addLabel(JPanel panel, String text, int fontSize, boolean bold, Color color) {
+    static void addLabel(JPanel panel, String text, int fontSize, boolean bold, java.awt.Color color) {
         addLabel(panel, text, fontSize, bold, color, false);
     }
 
-    private static void addLabel(JPanel panel, String text, int fontSize, boolean bold, Color color, boolean italic) {
+    static void addLabel(JPanel panel, String text, int fontSize, boolean bold, java.awt.Color color, boolean italic) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font("Yu Gothic UI", italic ? Font.ITALIC : (bold ? Font.BOLD : Font.PLAIN), fontSize + 10));
+        label.setFont(new java.awt.Font("Yu Gothic UI",
+                italic ? java.awt.Font.ITALIC : (bold ? java.awt.Font.BOLD : java.awt.Font.PLAIN), fontSize + 10));
         label.setForeground(color);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         label.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         panel.add(label);
     }
-
-    // --- 汎用画像追加メソッド ---
-    private static void addImage(JPanel panel, String path, int width) {
-        try {
-            ImageIcon icon = new ImageIcon(path);
-            int height = icon.getIconHeight() * width / icon.getIconWidth();
-            Image scaled = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            JLabel imgLabel = new JLabel(new ImageIcon(scaled));
-            imgLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            panel.add(imgLabel);
-        } catch (Exception ignored) {
-        }
-    }
-
-    // --- 星座名から画像ファイル名を取得するメソッド ---
-    private static String getSeizaImageFile(String seiza) {
-        switch (seiza) {
-            case "おひつじ":
-                return "image/ohituji.png";
-            case "おうし":
-                return "image/ousi.png";
-            case "ふたご":
-                return "image/hutago.png";
-            case "かに":
-                return "image/kani.png";
-            case "しし":
-                return "image/sisi.png";
-            case "おとめ":
-                return "image/otome.png";
-            case "てんびん":
-                return "image/tenbin.png";
-            case "さそり":
-                return "image/sasori.png";
-            case "いて":
-                return "image/ite.png";
-            case "やぎ":
-                return "image/yagi.png";
-            case "みずがめ":
-                return "image/mizugame.png";
-            case "うお":
-                return "image/uo.png";
-            default:
-                return null;
-        }
-    }
-
-    // --- 星座占い順位行の生成 ---
-    private static JPanel createUranaiRow(String line, String imageFile) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        row.setOpaque(false);
-        JLabel textLabel = new JLabel(line);
-        textLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 28));
-        textLabel.setForeground(new Color(120, 80, 180));
-        row.add(textLabel);
-        if (imageFile != null) {
-            ImageIcon icon = new ImageIcon(imageFile);
-            Image scaled = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
-            row.add(new JLabel(new ImageIcon(scaled)));
-        }
-        return row;
-    }
-
-    // --- ラッキーアイテム・トレーニング行の生成 ---
-    private static JPanel createUranaiSubRow(String item, String training) {
-        JPanel subRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        subRow.setOpaque(false);
-        JLabel itemLabel = new JLabel(item);
-        itemLabel.setFont(new Font("Yu Gothic UI", Font.PLAIN, 20));
-        itemLabel.setForeground(new Color(80, 120, 180));
-        JLabel trainingLabel = new JLabel(training);
-        trainingLabel.setFont(new Font("Yu Gothic UI", Font.PLAIN, 20));
-        trainingLabel.setForeground(new Color(80, 120, 180));
-        subRow.add(itemLabel);
-        subRow.add(trainingLabel);
-        subRow.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
-        return subRow;
-    }
-
-    // --- 都道府県名から画像ファイルパスを取得するメソッド ---
-    private static String getPrefImagePath(String prefName) {
-        switch (prefName) {
-            case "岐阜":
-                return "image/岐阜県.jpg";
-            case "静岡":
-                return "image/静岡県.webp";
-            default:
-                return "image/" + prefName + ".png";
-        }
-    }
-
-    // --- 都道府県画像パス取得（英語ファイル名対応） ---
-    private static String getPrefImagePathByData(WeatherData data) {
-        String name = data.getName();
-        String path = "image/都道府県/" + toPrefFileName(name) + ".png";
-        java.io.File file = new java.io.File(path);
-        if (file.exists())
-            return path;
-        // fallback: 旧ロジック
-        return getPrefImagePath(name);
-    }
-
-    private static String toPrefFileName(String name) {
-        switch (name) {
-            case "北海道":
-                return "hokkaido";
-            case "青森":
-                return "aomori";
-            case "岩手":
-                return "iwate";
-            case "宮城":
-                return "miyagi";
-            case "秋田":
-                return "akita";
-            case "山形":
-                return "yamagata";
-            case "福島":
-                return "fukushima";
-            case "茨城":
-                return "ibaraki";
-            case "栃木":
-                return "tochigi";
-            case "群馬":
-                return "gumma";
-            case "埼玉":
-                return "saitama";
-            case "千葉":
-                return "chiba";
-            case "東京":
-                return "tokyo";
-            case "神奈川":
-                return "kanagawa";
-            case "新潟":
-                return "niigata";
-            case "富山":
-                return "toyama";
-            case "石川":
-                return "ishikawa";
-            case "福井":
-                return "fukui";
-            case "山梨":
-                return "yamanashi";
-            case "長野":
-                return "nagano";
-            case "岐阜":
-                return "gifu";
-            case "静岡":
-                return "shizuoka";
-            case "愛知":
-                return "aichi";
-            case "三重":
-                return "mie";
-            case "滋賀":
-                return "shiga";
-            case "京都":
-                return "kyoto";
-            case "大阪":
-                return "osaka";
-            case "兵庫":
-                return "hyogo";
-            case "奈良":
-                return "nara";
-            case "和歌山":
-                return "wakayama";
-            case "鳥取":
-                return "tottori";
-            case "島根":
-                return "shimane";
-            case "岡山":
-                return "okayama";
-            case "広島":
-                return "hiroshima";
-            case "山口":
-                return "yamaguchi";
-            case "徳島":
-                return "tokushima";
-            case "香川":
-                return "kagawa";
-            case "愛媛":
-                return "ehime";
-            case "高知":
-                return "kochi";
-            case "福岡":
-                return "fukuoka";
-            case "佐賀":
-                return "saga";
-            case "長崎":
-                return "nagasaki";
-            case "熊本":
-                return "kumamoto";
-            case "大分":
-                return "oita";
-            case "宮崎":
-                return "miyazaki";
-            case "鹿児島":
-                return "kagoshima";
-            case "沖縄":
-                return "okinawa";
-            default:
-                return name;
-        }
-    }
 }
+
+// --- ここから下をWeatherData.javaに移動 ---
+// --- 占い行生成メソッド ---
+// --- 画像追加メソッド ---
+// --- 天気表示メソッド ---
+// これらのクラス・インスタンスはWeatherData.javaに移動済みのため、ここから削除
