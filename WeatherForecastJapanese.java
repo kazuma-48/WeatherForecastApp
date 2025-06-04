@@ -142,11 +142,6 @@ public class WeatherForecastJapanese {
             JPanel rightPanel = new JPanel();
             rightPanel.setOpaque(false);
             rightPanel.setLayout(new BorderLayout());
-            JLabel imgTitle = new JLabel("日本地図");
-            imgTitle.setFont(new Font("Yu Gothic UI", Font.BOLD, 32));
-            imgTitle.setForeground(new Color(0, 120, 220));
-            imgTitle.setHorizontalAlignment(SwingConstants.CENTER);
-            rightPanel.add(imgTitle, BorderLayout.NORTH);
             WeatherData.imageUtil.addImage(rightPanel, "image/cd1f65b4-88c3-4750-b086-913bc4a34136.jpg", 340);
             homeContentPanel.add(leftPanel, BorderLayout.CENTER);
             homeContentPanel.add(rightPanel, BorderLayout.EAST);

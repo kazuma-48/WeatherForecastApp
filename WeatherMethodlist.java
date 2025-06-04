@@ -55,6 +55,7 @@ public class WeatherMethodlist {
         }
         return sb.toString();
     }
+
     // 天気情報
     public static String printWeather(int code) {
         return switch (code) {
@@ -74,6 +75,7 @@ public class WeatherMethodlist {
             default -> "不明";
         };
     }
+
     // 天気画像取得
     public static String getWeatherImagePath(String weather) {
         switch (weather) {
@@ -91,37 +93,58 @@ public class WeatherMethodlist {
                 return null;
         }
     }
+
     // 星座画像取得
     public static String getSeizaImageFile(String seiza) {
+        String fileName;
         switch (seiza) {
             case "おひつじ":
-                return "image/ohituji.png";
+                fileName = "ohituji";
+                break;
             case "おうし":
-                return "image/ousi.png";
+                fileName = "ousi";
+                break;
             case "ふたご":
-                return "image/hutago.png";
+                fileName = "hutago";
+                break;
             case "かに":
-                return "image/kani.png";
+                fileName = "kani";
+                break;
             case "しし":
-                return "image/sisi.png";
+                fileName = "sisi";
+                break;
             case "おとめ":
-                return "image/otome.png";
+                fileName = "otome";
+                break;
             case "てんびん":
-                return "image/tenbin.png";
+                fileName = "tenbin";
+                break;
             case "さそり":
-                return "image/sasori.png";
+                fileName = "sasori";
+                break;
             case "いて":
-                return "image/ite.png";
+                fileName = "ite";
+                break;
             case "やぎ":
-                return "image/yagi.png";
+                fileName = "yagi";
+                break;
             case "みずがめ":
-                return "image/mizugame.png";
+                fileName = "mizugame";
+                break;
             case "うお":
-                return "image/uo.png";
+                fileName = "uo";
+                break;
             default:
                 return null;
         }
+        String path = "image/星座/" + fileName + ".png";
+        java.io.File file = new java.io.File(path);
+        if (file.exists()) {
+            return path;
+        }
+        return null;
     }
+
     // 都道府県画像取得
     public static String getPrefImagePathByData(WeatherData data) {
         String name = data.getName();
